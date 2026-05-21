@@ -1,12 +1,77 @@
+/*
+ * ==========================================
+ * COMPOSANT: ProductList
+ * ==========================================
+ * Ce composant gère l'affichage de la liste des produits (plantes) 
+ * avec les catégories, le panier d'achat et les interactions utilisateur.
+ * Il utilise React Hooks (useState) pour gérer l'état local et affiche
+ * soit la liste des produits, soit le contenu du panier.
+ */
+
+// ========== IMPORTATIONS ==========
+// Import de React et du hook useState pour gérer l'état des composants fonctionnels
+// useEffect est importé mais peut ne pas être utilisé dans cette version
 import React, { useState, useEffect } from "react";
+
+// Import du fichier CSS contenant les styles personnalisés du composant ProductList
 import "./ProductList.css";
+
+// Import du composant CartItem qui affiche les articles individuels du panier
 import CartItem from "./CartItem";
+
+// Import de l'action Redux addItem utilisée pour ajouter des articles au panier global (store Redux)
 import { addItem } from "./CartSlice";
+
+/*
+ * ========== FONCTION PRINCIPALE DU COMPOSANT ==========
+ * Composant ProductList
+ * 
+ * @param {Object} props - Les propriétés du composant
+ * @param {Function} props.onHomeClick - Fonction callback pour gérer le clic sur le bouton "Home"
+ * @returns {JSX.Element} - Le JSX rendant soit la page produits, soit le panier
+ */
 function ProductList({ onHomeClick }) {
+  
+  /* ========== GESTION D'ÉTAT LOCAL AVEC USESTATE ========== */
+  
+  // État pour contrôler l'affichage du panier
+  // true = afficher le panier, false = afficher les produits disponibles
   const [showCart, setShowCart] = useState(false);
-  const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
+  
+  // État pour contrôler la visibilité d'une page (semble être la page "À propos")
+  // À noter: Ce nom "showPlants" est trompeur car les plantes sont toujours affichées dans la liste
+  const [showPlants, setShowPlants] = useState(false);
+  
+  // État pour suivre les articles ajoutés au panier par l'utilisateur
+  // Structure: Objet clé-valeur où:
+  //   - Clé: nom de la plante (ex: "Snake Plant")
+  //   - Valeur: nombre d'articles de ce type ajoutés au panier
+  // Exemple: { "Snake Plant": 2, "Lavender": 1, "Jasmine": 3 }
   const [addedToCart, setAddedToCart] = useState({});
 
+  /*
+   * ========== STRUCTURE DE DONNÉES PRINCIPALE ==========
+   * plantsArray - Tableau contenant toutes les 5 catégories de plantes
+   * 
+   * Structure générale:
+   * [
+   *   {
+   *     category: "Nom de la catégorie",
+   *     plants: [
+   *       { name, image, description, cost },
+   *       ...
+   *     ]
+   *   },
+   *   ...
+   * ]
+   * 
+   * Les 5 catégories disponibles:
+   * 1. "Air Purifying Plants" - Plantes qui purifient l'air de la maison
+   * 2. "Aromatic Fragrant Plants" - Plantes avec un parfum agréable et relaxant
+   * 3. "Insect Repellent Plants" - Plantes qui repoussent naturellement les insectes
+   * 4. "Medicinal Plants" - Plantes à propriétés médicinales
+   * 5. "Low Maintenance Plants" - Plantes faciles à entretenir, idéales pour débutants
+   */
   const plantsArray = [
     {
       category: "Air Purifying Plants",
@@ -97,9 +162,8 @@ function ProductList({ onHomeClick }) {
           name: "Hyacinth",
           image:
             "https://cdn.pixabay.com/photo/2019/04/07/20/20/hyacinth-4110726_1280.jpg",
-          description:
-            "Hyacinth is a beautiful flowering plant known for its fragrant.",
-          cost: "$22",
+          description: "Sweet fragrance that attracts butterflies.",
+          cost: "$16",
         },
       ],
     },
@@ -107,49 +171,46 @@ function ProductList({ onHomeClick }) {
       category: "Insect Repellent Plants",
       plants: [
         {
-          name: "oregano",
+          name: "Neem",
           image:
-            "https://cdn.pixabay.com/photo/2015/05/30/21/20/oregano-790702_1280.jpg",
-          description:
-            "The oregano plants contains compounds that can deter certain insects.",
-          cost: "$10",
+            "https://cdn.pixabay.com/photo/2021/02/04/21/17/neem-5985800_1280.jpg",
+          description: "Natural insect repellent used for centuries.",
+          cost: "$21",
         },
         {
           name: "Marigold",
           image:
-            "https://cdn.pixabay.com/photo/2022/02/22/05/45/marigold-7028063_1280.jpg",
-          description:
-            "Natural insect repellent, also adds color to the garden.",
+            "https://cdn.pixabay.com/photo/2019/12/08/12/47/marigold-4680234_1280.jpg",
+          description: "Repels insects and brightens the garden.",
           cost: "$8",
         },
         {
-          name: "Geraniums",
+          name: "Tulsi",
           image:
-            "https://cdn.pixabay.com/photo/2012/04/26/21/51/flowerpot-43270_1280.jpg",
-          description:
-            "Known for their insect-repelling properties while adding a pleasant scent.",
-          cost: "$20",
+            "https://cdn.pixabay.com/photo/2021/04/29/08/30/tulsi-6215503_1280.jpg",
+          description: "Sacred plant that repels insects naturally.",
+          cost: "$19",
         },
         {
-          name: "Basil",
+          name: "Citronella",
           image:
-            "https://cdn.pixabay.com/photo/2016/07/24/20/48/tulsi-1539181_1280.jpg",
-          description: "Repels flies and mosquitoes, also used in cooking.",
-          cost: "$9",
-        },
-        {
-          name: "Lavender",
-          image:
-            "https://images.unsplash.com/photo-1611909023032-2d6b3134ecba?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-          description: "Calming scent, used in aromatherapy.",
-          cost: "$20",
-        },
-        {
-          name: "Catnip",
-          image:
-            "https://cdn.pixabay.com/photo/2015/07/02/21/55/cat-829681_1280.jpg",
-          description: "Repels mosquitoes and attracts cats.",
+            "https://cdn.pixabay.com/photo/2021/07/13/21/09/citronella-6463485_1280.jpg",
+          description: "Famous mosquito repellent with citrus scent.",
           cost: "$13",
+        },
+        {
+          name: "Peppermint",
+          image:
+            "https://cdn.pixabay.com/photo/2019/08/27/05/39/mint-4432014_1280.jpg",
+          description: "Pest repellent, useful in culinary applications.",
+          cost: "$11",
+        },
+        {
+          name: "Camphor Basil",
+          image:
+            "https://cdn.pixabay.com/photo/2019/08/27/05/38/basil-4432013_1280.jpg",
+          description: "Strong scent that repels various insects.",
+          cost: "$10",
         },
       ],
     },
@@ -157,46 +218,46 @@ function ProductList({ onHomeClick }) {
       category: "Medicinal Plants",
       plants: [
         {
-          name: "Aloe Vera",
+          name: "Basil",
           image:
-            "https://cdn.pixabay.com/photo/2018/04/02/07/42/leaf-3283175_1280.jpg",
-          description: "Soothing gel used for skin ailments.",
-          cost: "$14",
+            "https://cdn.pixabay.com/photo/2020/02/01/18/52/basil-4807939_1280.jpg",
+          description: "Used in cooking and traditional medicine.",
+          cost: "$9",
         },
         {
-          name: "Echinacea",
+          name: "Thyme",
           image:
-            "https://cdn.pixabay.com/photo/2014/12/05/03/53/echinacea-557477_1280.jpg",
-          description: "Boosts immune system, helps fight colds.",
+            "https://cdn.pixabay.com/photo/2018/07/25/10/22/herb-3560016_1280.jpg",
+          description: "Herbal remedy, used in teas and cooking.",
+          cost: "$7",
+        },
+        {
+          name: "Sage",
+          image:
+            "https://cdn.pixabay.com/photo/2019/08/26/08/04/sage-4431139_1280.jpg",
+          description: "Traditional medicinal herb with multiple benefits.",
+          cost: "$8",
+        },
+        {
+          name: "Oregano",
+          image:
+            "https://cdn.pixabay.com/photo/2019/08/27/05/37/oregano-4432011_1280.jpg",
+          description: "Rich in antioxidants, used in cooking and medicine.",
+          cost: "$6",
+        },
+        {
+          name: "Ashwagandha",
+          image:
+            "https://cdn.pixabay.com/photo/2021/08/04/12/39/ashwagandha-6520421_1280.jpg",
+          description: "Ancient ayurvedic herb for stress relief.",
+          cost: "$18",
+        },
+        {
+          name: "Brahmi",
+          image:
+            "https://cdn.pixabay.com/photo/2021/08/04/12/40/brahmi-6520422_1280.jpg",
+          description: "Cognitive enhancer used in traditional medicine.",
           cost: "$16",
-        },
-        {
-          name: "Peppermint",
-          image:
-            "https://cdn.pixabay.com/photo/2017/07/12/12/23/peppermint-2496773_1280.jpg",
-          description: "Relieves digestive issues and headaches.",
-          cost: "$13",
-        },
-        {
-          name: "Lemon Balm",
-          image:
-            "https://cdn.pixabay.com/photo/2019/09/16/07/41/balm-4480134_1280.jpg",
-          description: "Calms nerves and promotes relaxation.",
-          cost: "$14",
-        },
-        {
-          name: "Chamomile",
-          image:
-            "https://cdn.pixabay.com/photo/2016/08/19/19/48/flowers-1606041_1280.jpg",
-          description: "Soothes anxiety and promotes sleep.",
-          cost: "$15",
-        },
-        {
-          name: "Calendula",
-          image:
-            "https://cdn.pixabay.com/photo/2019/07/15/18/28/flowers-4340127_1280.jpg",
-          description: "Heals wounds and soothes skin irritations.",
-          cost: "$12",
         },
       ],
     },
@@ -204,191 +265,231 @@ function ProductList({ onHomeClick }) {
       category: "Low Maintenance Plants",
       plants: [
         {
-          name: "ZZ Plant",
-          image:
-            "https://images.unsplash.com/photo-1632207691143-643e2a9a9361?q=80&w=464&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-          description: "Thrives in low light and requires minimal watering.",
-          cost: "$25",
-        },
-        {
           name: "Pothos",
           image:
-            "https://cdn.pixabay.com/photo/2018/11/15/10/32/plants-3816945_1280.jpg",
-          description: "Tolerates neglect and can grow in various conditions.",
-          cost: "$10",
+            "https://cdn.pixabay.com/photo/2018/07/11/06/50/philodendron-3530420_1280.jpg",
+          description: "Thrives in low light and irregular watering.",
+          cost: "$11",
         },
         {
-          name: "Snake Plant",
+          name: "Dracaena",
           image:
-            "https://cdn.pixabay.com/photo/2021/01/22/06/04/snake-plant-5939187_1280.jpg",
-          description:
-            "Needs infrequent watering and is resilient to most pests.",
+            "https://cdn.pixabay.com/photo/2020/03/27/12/11/dracaena-4973177_1280.jpg",
+          description: "Hardy plant, tolerates neglect very well.",
+          cost: "$13",
+        },
+        {
+          name: "ZZ Plant",
+          image:
+            "https://cdn.pixabay.com/photo/2021/02/11/09/27/zz-plant-5999815_1280.jpg",
+          description: "Extremely tolerant of low light and dry conditions.",
           cost: "$15",
         },
         {
-          name: "Cast Iron Plant",
+          name: "Succulent",
           image:
-            "https://cdn.pixabay.com/photo/2017/02/16/18/04/cast-iron-plant-2072008_1280.jpg",
-          description: "Hardy plant that tolerates low light and neglect.",
-          cost: "$20",
+            "https://cdn.pixabay.com/photo/2021/04/24/10/47/succulent-6204547_1280.jpg",
+          description: "Water-efficient with minimal care requirements.",
+          cost: "$10",
         },
         {
-          name: "Succulents",
+          name: "Cactus",
           image:
-            "https://cdn.pixabay.com/photo/2016/11/21/16/05/cacti-1846147_1280.jpg",
-          description: "Drought-tolerant plants with unique shapes and colors.",
-          cost: "$18",
+            "https://cdn.pixabay.com/photo/2021/04/19/14/30/cactus-6191817_1280.jpg",
+          description: "Perfect for sunny spots, requires minimal watering.",
+          cost: "$9",
         },
         {
-          name: "Aglaonema",
+          name: "Snake Plant Variegated",
           image:
-            "https://cdn.pixabay.com/photo/2014/10/10/04/27/aglaonema-482915_1280.jpg",
-          description: "Requires minimal care and adds color to indoor spaces.",
-          cost: "$22",
+            "https://cdn.pixabay.com/photo/2020/05/23/16/53/sanseviera-5212251_1280.jpg",
+          description: "Highly adaptable to various indoor conditions.",
+          cost: "$14",
         },
       ],
     },
   ];
-  const styleObj = {
-    backgroundColor: "#4CAF50",
-    color: "#fff!important",
-    padding: "15px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignIems: "center",
-    fontSize: "20px",
-  };
-  const styleObjUl = {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "1100px",
-  };
-  const styleA = {
-    color: "white",
-    fontSize: "30px",
-    textDecoration: "none",
+
+  /*
+   * ========== GESTIONNAIRES D'ÉVÉNEMENTS ==========
+   * Ces fonctions gèrent les interactions utilisateur
+   */
+
+  // Fonction pour ajouter un article au panier
+  // Met à jour l'objet addedToCart en incrémentant le compte pour la plante spécifiée
+  // @param {string} name - Le nom de la plante à ajouter au panier
+  const handleAddCart = (name) => {
+    setAddedToCart((prevCart) => ({
+      ...prevCart,
+      [name]: (prevCart[name] || 0) + 1,
+    }));
   };
 
-  const handleHomeClick = (e) => {
-    e.preventDefault();
+  // Fonction pour basculer l'affichage du panier
+  // Affiche le panier si showCart est false, cache le panier sinon
+  // Met à jour également l'état showPlants
+  const handleCartClick = () => {
+    setShowCart(!showCart);
+    setShowPlants(false);
+  };
+
+  // Fonction pour revenir à l'accueil
+  // Appelle la fonction callback onHomeClick fournie en propriété
+  const handleHomeClick = () => {
     onHomeClick();
   };
 
-  const handleCartClick = (e) => {
-    e.preventDefault();
-    setShowCart(true); // Set showCart to true when cart icon is clicked
+  /*
+   * ========== STYLES EN LIGNE ==========
+   * Définition des styles CSS en tant qu'objets JavaScript
+   * Ces styles sont appliqués directement aux éléments JSX
+   */
+
+  // Styles pour la barre de navigation
+  const navbarStyle = {
+    backgroundColor: "#4CAF50", // Couleur verte
+    color: "white",
+    padding: "10px",
+    textAlign: "center",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
   };
-  const handlePlantsClick = (e) => {
-    e.preventDefault();
-    setShowPlants(true); // Set showAboutUs to true when "About Us" link is clicked
-    setShowCart(false); // Hide the cart when navigating to About Us
+
+  // Styles pour les boutons de la navbar
+  const navButtonStyle = {
+    backgroundColor: "white",
+    color: "#4CAF50",
+    border: "none",
+    padding: "10px 20px",
+    cursor: "pointer",
+    fontSize: "16px",
+    borderRadius: "4px",
+    marginRight: "10px",
   };
 
-  const handleContinueShopping = (e) => {
-    e.preventDefault();
-    setShowCart(false);
-  };
+  // ========== RENDU CONDITIONNEL ==========
+  // Si showCart est true, afficher le panier
+  // Sinon, afficher la liste des produits avec les catégories
 
-  const handleAddToCart = (e) => {
-    dispatch(addItem(product));
+  if (showCart) {
+    // RENDU DU PANIER
+    return (
+      <div>
+        {/* Barre de navigation avec bouton pour revenir aux produits */}
+        <nav style={navbarStyle}>
+          <h1>Shopping Cart</h1>
+          <button style={navButtonStyle} onClick={handleCartClick}>
+            View Products
+          </button>
+        </nav>
 
-    setAddedToCart((prevState) => ({
-        ...prevState,
-        [product.name]: true,
-    }))
-  }
-
-  return (
-    <div>
-      <div className="navbar" style={styleObj}>
-        <div className="tag">
-          <div className="luxury">
-            <img
-              src="https://cdn.pixabay.com/photo/2020/08/05/13/12/eco-5465432_1280.png"
-              alt=""
-            />
-            <a href="/" onClick={(e) => handleHomeClick(e)}>
-              <div>
-                <h3 style={{ color: "white" }}>Paradise Nursery</h3>
-                <i style={{ color: "white" }}>Where Green Meets Serenity</i>
-              </div>
-            </a>
-          </div>
-        </div>
-        <div style={styleObjUl}>
-          <div>
-            {" "}
-            <a href="#" onClick={(e) => handlePlantsClick(e)} style={styleA}>
-              Plants
-            </a>
-          </div>
-          <div>
-            {" "}
-            <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}>
-              <h1 className="cart">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 256 256"
-                  id="IconChangeColor"
-                  height="68"
-                  width="68"
-                >
-                  <rect width="156" height="156" fill="none"></rect>
-                  <circle cx="80" cy="216" r="12"></circle>
-                  <circle cx="184" cy="216" r="12"></circle>
-                  <path
-                    d="M42.3,72H221.7l-26.4,92.4A15.9,15.9,0,0,1,179.9,176H84.1a15.9,15.9,0,0,1-15.4-11.6L32.5,37.8A8,8,0,0,0,24.8,32H8"
-                    fill="none"
-                    stroke="#faf9f9"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    id="mainIconPathAttribute"
-                  ></path>
-                </svg>
-              </h1>
-            </a>
-          </div>
-        </div>
-      </div>
-      {!showCart ? (
-        <div className="product-grid">
-          {plantsArray.map((category, index) => (
-            <div key={index}>
-              <h1>
-                <div>{category.category}</div>
-              </h1>
-              <div className="product-list">
-                {category.plants.map((plant, plantIndex) => (
-                  <div className="product-card" key={plantIndex}>
-                    <img
-                      src="{plant.image}"
-                      alt="plant.image"
-                      className="product-image"
-                    />
-                    <div className="product-title">{plant.name}</div>
-                    <div className="product-description">
-                      {plant.description}
-                    </div>
-                    <div className="product-cost">${plant.cost}</div>
-                    <button
-                      className="product-button"
-                      onClick={() => handleAddToCart(plant)}
-                    >
-                      Add to Cart
-                    </button>
-                  </div>
-                ))}
-              </div>
+        {/* Section du panier */}
+        <div className="cart-container">
+          {/* Itérer sur les articles ajoutés au panier et afficher chacun */}
+          {Object.keys(addedToCart).map((plantName) => (
+            <div key={plantName}>
+              {/* Trouver la plante correspondante dans plantsArray */}
+              {plantsArray.map((category) =>
+                category.plants.map(
+                  (plant) =>
+                    // Afficher CartItem si la plante correspond
+                    plant.name === plantName && (
+                      <CartItem
+                        key={plant.name}
+                        name={plant.name}
+                        image={plant.image}
+                        cost={plant.cost}
+                        quantity={addedToCart[plant.name]}
+                      />
+                    )
+                )
+              )}
             </div>
           ))}
         </div>
-      ) : (
-        <CartItem onContinueShopping={handleContinueShopping} />
-      )}
+      </div>
+    );
+  }
+
+  // RENDU DE LA PAGE PRODUITS (affichage par défaut)
+  return (
+    <div>
+      {/* Barre de navigation */}
+      <nav style={navbarStyle}>
+        <h1>Paradise Nursery</h1>
+        <div>
+          {/* Bouton pour afficher le panier */}
+          <button style={navButtonStyle} onClick={handleCartClick}>
+            View Cart
+          </button>
+          {/* Bouton pour revenir à l'accueil */}
+          <button style={navButtonStyle} onClick={handleHomeClick}>
+            Home
+          </button>
+        </div>
+      </nav>
+
+      {/* Conteneur principal pour toutes les catégories */}
+      <div className="plants-container">
+        {/* 
+         * BOUCLE MAP SUR LES CATÉGORIES
+         * Parcourt chaque catégorie dans plantsArray et crée une section pour chacune
+         */}
+        {plantsArray.map((category) => (
+          <div key={category.category} className="category-section">
+            {/* En-tête de la catégorie */}
+            <h2 className="category-title">{category.category}</h2>
+
+            {/* 
+             * BOUCLE MAP SUR LES PLANTES
+             * Pour chaque plante dans la catégorie, affiche une carte produit
+             */}
+            <div className="plants-grid">
+              {category.plants.map((plant) => (
+                <div key={plant.name} className="plant-card">
+                  {/* Image du produit */}
+                  <img src={plant.image} alt={plant.name} className="plant-image" />
+                  
+                  {/* Nom du produit */}
+                  <h3 className="plant-name">{plant.name}</h3>
+                  
+                  {/* Description du produit */}
+                  <p className="plant-description">{plant.description}</p>
+                  
+                  {/* Prix du produit */}
+                  <p className="plant-cost">{plant.cost}</p>
+
+                  {/* 
+                   * Bouton "Add to Cart"
+                   * Au clic, appelle handleAddCart avec le nom de la plante
+                   * Met à jour l'état addedToCart et affiche un visuelt feedback
+                   */}
+                  <button
+                    className="add-to-cart-button"
+                    onClick={() => handleAddCart(plant.name)}
+                  >
+                    Add to Cart
+                  </button>
+
+                  {/* 
+                   * Affichage du nombre d'articles ajoutés au panier pour cette plante
+                   * Affiche seulement si la plante a été ajoutée au moins une fois
+                   */}
+                  {addedToCart[plant.name] && (
+                    <p className="quantity-badge">
+                      Quantity: {addedToCart[plant.name]}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
+// Export du composant pour utilisation dans d'autres fichiers
 export default ProductList;
