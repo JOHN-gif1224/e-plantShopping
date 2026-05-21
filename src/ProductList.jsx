@@ -11,7 +11,7 @@
 // ========== IMPORTATIONS ==========
 // Import de React et du hook useState pour gérer l'état des composants fonctionnels
 // useEffect est importé mais peut ne pas être utilisé dans cette version
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 // Import du fichier CSS contenant les styles personnalisés du composant ProductList
 import "./ProductList.css";
@@ -419,35 +419,42 @@ function ProductList({ onHomeClick }) {
              * Pour chaque plante dans la catégorie, affiche une carte produit
              */}
             <div className="plants-grid">
-              {category.plants.map((plant) => (
-                <article key={plant.name} className="plant-card">
-                  <div className="plant-card-image-wrap">
-                    <img
-                      src={plant.image}
-                      alt={plant.name}
-                      className="plant-image"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="plant-card-body">
-                    <h3 className="plant-name">{plant.name}</h3>
-                    <p className="plant-description">{plant.description}</p>
-                    <p className="plant-cost">{plant.cost}</p>
-                    <button
-                      type="button"
-                      className="add-to-cart-button"
-                      onClick={() => handleAddCart(plant)}
-                    >
-                      Add to Cart
-                    </button>
-                    {getCartQuantity(plant.name) > 0 && (
-                      <p className="quantity-badge">
-                        Quantity: {getCartQuantity(plant.name)}
-                      </p>
-                    )}
-                  </div>
-                </article>
-              ))}
+              {category.plants.map((plant) => {
+                const quantity = getCartQuantity(plant.name);
+                const isInCart = quantity > 0;
+
+                return (
+                  <article key={plant.name} className="plant-card">
+                    <div className="plant-card-image-wrap">
+                      <img
+                        src={plant.image}
+                        alt={plant.name}
+                        className="plant-image"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="plant-card-body">
+                      <h3 className="plant-name">{plant.name}</h3>
+                      <p className="plant-description">{plant.description}</p>
+                      <p className="plant-cost">{plant.cost}</p>
+                      <button
+                        type="button"
+                        className={`add-to-cart-button${isInCart ? " added-to-cart" : ""}`}
+                        onClick={() => handleAddCart(plant)}
+                        disabled={isInCart}
+                        aria-disabled={isInCart}
+                      >
+                        {isInCart ? "Added to Cart" : "Add to Cart"}
+                      </button>
+                      {isInCart && (
+                        <p className="quantity-badge">
+                          Quantity: {quantity}
+                        </p>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
         ))}

@@ -383,6 +383,18 @@ body {
   transform: scale(0.98);
 }
 
+.add-to-cart-button.added-to-cart,
+.add-to-cart-button:disabled {
+  background-color: #9e9e9e;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.add-to-cart-button.added-to-cart:hover,
+.add-to-cart-button:disabled:hover {
+  background-color: #9e9e9e;
+}
+
 .quantity-badge {
   margin: 0.35rem 0 0;
   font-size: 0.85rem;
