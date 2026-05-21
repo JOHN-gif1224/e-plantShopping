@@ -19,7 +19,8 @@ import "./ProductList.css";
 // Import du composant CartItem qui affiche les articles individuels du panier
 import CartItem from "./CartItem";
 
-// Import de l'action Redux addItem utilisée pour ajouter des articles au panier global (store Redux)
+// Redux : ajout au panier global et lecture des quantités
+import { useDispatch, useSelector } from "react-redux";
 import { addItem } from "./CartSlice";
 
 /*
@@ -42,12 +43,13 @@ function ProductList({ onHomeClick }) {
   // À noter: Ce nom "showPlants" est trompeur car les plantes sont toujours affichées dans la liste
   const [showPlants, setShowPlants] = useState(false);
   
-  // État pour suivre les articles ajoutés au panier par l'utilisateur
-  // Structure: Objet clé-valeur où:
-  //   - Clé: nom de la plante (ex: "Snake Plant")
-  //   - Valeur: nombre d'articles de ce type ajoutés au panier
-  // Exemple: { "Snake Plant": 2, "Lavender": 1, "Jasmine": 3 }
-  const [addedToCart, setAddedToCart] = useState({});
+  const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart.items);
+
+  const getCartQuantity = (name) => {
+    const item = cartItems.find((i) => i.name === name);
+    return item ? item.quantity : 0;
+  };
 
   /*
    * ========== STRUCTURE DE DONNÉES PRINCIPALE ==========
@@ -315,14 +317,8 @@ function ProductList({ onHomeClick }) {
    * Ces fonctions gèrent les interactions utilisateur
    */
 
-  // Fonction pour ajouter un article au panier
-  // Met à jour l'objet addedToCart en incrémentant le compte pour la plante spécifiée
-  // @param {string} name - Le nom de la plante à ajouter au panier
-  const handleAddCart = (name) => {
-    setAddedToCart((prevCart) => ({
-      ...prevCart,
-      [name]: (prevCart[name] || 0) + 1,
-    }));
+  const handleAddCart = (plant) => {
+    dispatch(addItem({ name: plant.name, image: plant.image, cost: plant.cost }));
   };
 
   // Fonction pour basculer l'affichage du panier
@@ -384,37 +380,14 @@ function ProductList({ onHomeClick }) {
           </button>
         </nav>
 
-        {/* Section du panier */}
-        <div className="cart-container">
-          {/* Itérer sur les articles ajoutés au panier et afficher chacun */}
-          {Object.keys(addedToCart).map((plantName) => (
-            <div key={plantName}>
-              {/* Trouver la plante correspondante dans plantsArray */}
-              {plantsArray.map((category) =>
-                category.plants.map(
-                  (plant) =>
-                    // Afficher CartItem si la plante correspond
-                    plant.name === plantName && (
-                      <CartItem
-                        key={plant.name}
-                        name={plant.name}
-                        image={plant.image}
-                        cost={plant.cost}
-                        quantity={addedToCart[plant.name]}
-                      />
-                    )
-                )
-              )}
-            </div>
-          ))}
-        </div>
+        <CartItem onContinueShopping={handleCartClick} />
       </div>
     );
   }
 
   // RENDU DE LA PAGE PRODUITS (affichage par défaut)
   return (
-    <div>
+    <div className="products-page">
       {/* Barre de navigation */}
       <nav style={navbarStyle}>
         <h1>Paradise Nursery</h1>
@@ -447,41 +420,33 @@ function ProductList({ onHomeClick }) {
              */}
             <div className="plants-grid">
               {category.plants.map((plant) => (
-                <div key={plant.name} className="plant-card">
-                  {/* Image du produit */}
-                  <img src={plant.image} alt={plant.name} className="plant-image" />
-                  
-                  {/* Nom du produit */}
-                  <h3 className="plant-name">{plant.name}</h3>
-                  
-                  {/* Description du produit */}
-                  <p className="plant-description">{plant.description}</p>
-                  
-                  {/* Prix du produit */}
-                  <p className="plant-cost">{plant.cost}</p>
-
-                  {/* 
-                   * Bouton "Add to Cart"
-                   * Au clic, appelle handleAddCart avec le nom de la plante
-                   * Met à jour l'état addedToCart et affiche un visuelt feedback
-                   */}
-                  <button
-                    className="add-to-cart-button"
-                    onClick={() => handleAddCart(plant.name)}
-                  >
-                    Add to Cart
-                  </button>
-
-                  {/* 
-                   * Affichage du nombre d'articles ajoutés au panier pour cette plante
-                   * Affiche seulement si la plante a été ajoutée au moins une fois
-                   */}
-                  {addedToCart[plant.name] && (
-                    <p className="quantity-badge">
-                      Quantity: {addedToCart[plant.name]}
-                    </p>
-                  )}
-                </div>
+                <article key={plant.name} className="plant-card">
+                  <div className="plant-card-image-wrap">
+                    <img
+                      src={plant.image}
+                      alt={plant.name}
+                      className="plant-image"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="plant-card-body">
+                    <h3 className="plant-name">{plant.name}</h3>
+                    <p className="plant-description">{plant.description}</p>
+                    <p className="plant-cost">{plant.cost}</p>
+                    <button
+                      type="button"
+                      className="add-to-cart-button"
+                      onClick={() => handleAddCart(plant)}
+                    >
+                      Add to Cart
+                    </button>
+                    {getCartQuantity(plant.name) > 0 && (
+                      <p className="quantity-badge">
+                        Quantity: {getCartQuantity(plant.name)}
+                      </p>
+                    )}
+                  </div>
+                </article>
               ))}
             </div>
           </div>

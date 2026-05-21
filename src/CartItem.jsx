@@ -24,6 +24,11 @@ import { removeItem, updateQuantity } from './CartSlice';
 // Styles CSS - Fichier de style associé au composant CartItem
 import './CartItem.css';
 
+const parseCost = (cost) => {
+  if (typeof cost === 'number') return cost;
+  return parseFloat(String(cost).replace(/[^0-9.]/g, '')) || 0;
+};
+
 // ============================================================================
 // COMPOSANT CARTITEM
 // ============================================================================
@@ -66,7 +71,11 @@ const CartItem = ({ onContinueShopping }) => {
   //   - Article 3: cost=5, quantity=3 → 5 * 3 = 15
   //   → Retourner: 20 + 15 + 15 = 50
   const calculateTotalAmount = () => {
-    // À IMPLÉMENTER: Retourner la somme totale du panier
+    const total = cart.reduce(
+      (sum, item) => sum + parseCost(item.cost) * item.quantity,
+      0
+    );
+    return total.toFixed(2);
   };
 
   // ========================================================================
@@ -79,8 +88,8 @@ const CartItem = ({ onContinueShopping }) => {
   // - Appeler la callback 'onContinueShopping' reçue en prop
   // - Cette fonction doit rediriger l'utilisateur vers la page des produits
   // - Fermer le panier ou naviguer vers la liste des produits
-  const handleContinueShopping = (e) => {
-    // À IMPLÉMENTER: Appeler la fonction callback passée en props
+  const handleContinueShopping = () => {
+    if (onContinueShopping) onContinueShopping();
   };
 
   // ========================================================================
@@ -96,7 +105,7 @@ const CartItem = ({ onContinueShopping }) => {
   //
   // Exemple: un article avec quantity=3 doit devenir quantity=4
   const handleIncrement = (item) => {
-    // À IMPLÉMENTER: Envoyer une action pour augmenter la quantité de 1
+    dispatch(updateQuantity({ name: item.name, quantity: item.quantity + 1 }));
   };
 
   // ========================================================================
@@ -114,8 +123,9 @@ const CartItem = ({ onContinueShopping }) => {
   //
   // Exemple: un article avec quantity=3 doit devenir quantity=2
   const handleDecrement = (item) => {
-    // À IMPLÉMENTER: Envoyer une action pour diminuer la quantité de 1
-    // Ajouter une vérification pour ne pas avoir quantity < 1
+    if (item.quantity > 1) {
+      dispatch(updateQuantity({ name: item.name, quantity: item.quantity - 1 }));
+    }
   };
 
   // ========================================================================
@@ -131,7 +141,7 @@ const CartItem = ({ onContinueShopping }) => {
   //
   // Exemple: un article 'Plant A' est supprimé du panier
   const handleRemove = (item) => {
-    // À IMPLÉMENTER: Envoyer une action pour supprimer l'article du panier
+    dispatch(removeItem(item.name));
   };
 
   // ========================================================================
@@ -147,7 +157,15 @@ const CartItem = ({ onContinueShopping }) => {
   //
   // Exemple: un article à 10€ avec une quantité de 3 → Retourner 30
   const calculateTotalCost = (item) => {
-    // À IMPLÉMENTER: Retourner item.cost * item.quantity
+    return (parseCost(item.cost) * item.quantity).toFixed(2);
+  };
+
+  const handleCheckout = () => {
+    if (cart.length === 0) {
+      alert('Your cart is empty.');
+      return;
+    }
+    alert(`Checkout total: $${calculateTotalAmount()}`);
   };
 
   // ========================================================================
@@ -177,9 +195,10 @@ const CartItem = ({ onContinueShopping }) => {
           - React l'utilise pour identifier les éléments lors des mises à jour
       */}
       <div>
+        {cart.length === 0 && (
+          <p style={{ color: 'black' }}>Your cart is empty.</p>
+        )}
         {cart.map(item => (
-          
-          {/* Conteneur d'un article du panier */}
           <div className="cart-item" key={item.name}>
             
             {/* Image du produit */}
@@ -252,7 +271,9 @@ const CartItem = ({ onContinueShopping }) => {
           DIV vide avec classe 'total_cart_amount'
           À IMPLÉMENTER: Pourrait afficher un autre total ou des informations
       */}
-      <div style={{ marginTop: '20px', color: 'black' }} className='total_cart_amount'></div>
+      <div style={{ marginTop: '20px', color: 'black' }} className='total_cart_amount'>
+        {cart.length > 0 && `Grand total: $${calculateTotalAmount()}`}
+      </div>
       
       {/* ====================================================================
           BOUTONS D'ACTION - Navigation et paiement
@@ -267,21 +288,16 @@ const CartItem = ({ onContinueShopping }) => {
         */}
         <button 
           className="get-started-button" 
-          onClick={(e) => handleContinueShopping(e)}
+          onClick={handleContinueShopping}
         >
           Continue Shopping
         </button>
         
         <br />
         
-        {/* 
-            Bouton "Checkout"
-            À IMPLÉMENTER: Ajouter une fonction pour gérer le paiement
-            - Actuellement, ce bouton n'a aucune action associée
-            - À implémenter: onclick={() => handleCheckout()}
-            - Devrait diriger vers la page de paiement
-        */}
-        <button className="get-started-button1">Checkout</button>
+        <button className="get-started-button1" onClick={handleCheckout}>
+          Checkout
+        </button>
       </div>
     </div>
   );
